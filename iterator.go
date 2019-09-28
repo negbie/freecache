@@ -56,7 +56,7 @@ func (it *Iterator) nextForSlot(seg *segment, slotId int) *Entry {
 	for it.entryIdx < len(slot) {
 		ptr := slot[it.entryIdx]
 		it.entryIdx++
-		now := uint32(time.Now().Unix())
+		now := uint32(time.Now().UnixNano() / NANO_FRACTION)
 		var hdrBuf [ENTRY_HDR_SIZE]byte
 		seg.rb.ReadAt(hdrBuf[:], ptr.offset)
 		hdr := (*entryHdr)(unsafe.Pointer(&hdrBuf[0]))

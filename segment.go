@@ -9,6 +9,7 @@ import (
 
 const HASH_ENTRY_SIZE = 16
 const ENTRY_HDR_SIZE = 24
+const NANO_FRACTION = 1e8
 
 var ErrLargeKey = errors.New("The key is larger than 65535")
 var ErrLargeEntry = errors.New("The entry size is larger than 1/1024 of cache size")
@@ -64,7 +65,7 @@ func newSegment(bufSize int, segId int) (seg segment) {
 	return
 }
 
-func (seg *segment) set(key, value []byte, hashVal uint64, expireSeconds int) (err error) {
+func (seg *segment) set(key, value []byte, hashVal uint64, expireTime int) (err error) {
 	if len(key) > 65535 {
 		return ErrLargeKey
 	}
@@ -73,10 +74,10 @@ func (seg *segment) set(key, value []byte, hashVal uint64, expireSeconds int) (e
 		// Do not accept large entry.
 		return ErrLargeEntry
 	}
-	now := uint32(time.Now().Unix())
+	now := uint32(time.Now().UnixNano() / NANO_FRACTION)
 	expireAt := uint32(0)
-	if expireSeconds > 0 {
-		expireAt = now + uint32(expireSeconds)
+	if expireTime > 0 {
+		expireAt = now + uint32(expireTime)
 	}
 
 	slotId := uint8(hashVal >> 8)
@@ -200,7 +201,7 @@ func (seg *segment) get(key, buf []byte, hashVal uint64) (value []byte, expireAt
 		return
 	}
 	ptr := &slot[idx]
-	now := uint32(time.Now().Unix())
+	now := uint32(time.Now().UnixNano() / NANO_FRACTION)
 
 	var hdrBuf [ENTRY_HDR_SIZE]byte
 	seg.rb.ReadAt(hdrBuf[:], ptr.offset)
@@ -250,7 +251,7 @@ func (seg *segment) ttl(key []byte, hashVal uint64) (timeLeft uint32, err error)
 		return
 	}
 	ptr := &slot[idx]
-	now := uint32(time.Now().Unix())
+	now := uint32(time.Now().UnixNano() / NANO_FRACTION)
 
 	var hdrBuf [ENTRY_HDR_SIZE]byte
 	seg.rb.ReadAt(hdrBuf[:], ptr.offset)

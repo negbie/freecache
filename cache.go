@@ -44,13 +44,13 @@ func NewCache(size int) (cache *Cache) {
 
 // Set sets a key, value and expiration for a cache entry and stores it in the cache.
 // If the key is larger than 65535 or value is larger than 1/1024 of the cache size,
-// the entry will not be written to the cache. expireSeconds <= 0 means no expire,
+// the entry will not be written to the cache. expireTime <= 0 means no expire,
 // but it can be evicted when cache is full.
-func (cache *Cache) Set(key, value []byte, expireSeconds int) (err error) {
+func (cache *Cache) Set(key, value []byte, expireTime int) (err error) {
 	hashVal := hashFunc(key)
 	segID := hashVal & segmentAndOpVal
 	cache.locks[segID].Lock()
-	err = cache.segments[segID].set(key, value, hashVal, expireSeconds)
+	err = cache.segments[segID].set(key, value, hashVal, expireTime)
 	cache.locks[segID].Unlock()
 	return
 }
@@ -107,10 +107,10 @@ func (cache *Cache) Del(key []byte) (affected bool) {
 }
 
 // SetInt stores in integer value in the cache.
-func (cache *Cache) SetInt(key int64, value []byte, expireSeconds int) (err error) {
+func (cache *Cache) SetInt(key int64, value []byte, expireTime int) (err error) {
 	var bKey [8]byte
 	binary.LittleEndian.PutUint64(bKey[:], uint64(key))
-	return cache.Set(bKey[:], value, expireSeconds)
+	return cache.Set(bKey[:], value, expireTime)
 }
 
 // GetInt returns the value for an integer within the cache or a not found error.

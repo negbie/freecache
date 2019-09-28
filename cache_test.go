@@ -154,9 +154,9 @@ func TestGetWithExpiration(t *testing.T) {
 		if time.Now().Unix() > int64(expiry+1) {
 			break
 		}
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(1 * time.Nanosecond * NANO_FRACTION)
 	}
-	if time.Second > expireTime.Sub(startTime) || 3*time.Second < expireTime.Sub(startTime) {
+	if time.Nanosecond*NANO_FRACTION > expireTime.Sub(startTime) || 3*time.Nanosecond*NANO_FRACTION < expireTime.Sub(startTime) {
 		t.Error("Cache should expire within a second of the expire time")
 	}
 
@@ -176,7 +176,7 @@ func TestExpire(t *testing.T) {
 	if err != nil {
 		t.Error("err should be nil")
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Nanosecond * NANO_FRACTION)
 	val, err = cache.Get(key)
 	if err == nil {
 		t.Fatal("key should be expired", string(val))
@@ -196,7 +196,7 @@ func TestTTL(t *testing.T) {
 	if err != nil {
 		t.Error("err should be nil", err.Error())
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Nanosecond * NANO_FRACTION)
 	ttl, err := cache.TTL(key)
 	if err != nil {
 		t.Error("err should be nil", err.Error())
@@ -331,7 +331,7 @@ func TestInt64Key(t *testing.T) {
 	if !bytes.Equal(val, []byte("abc")) {
 		t.Error("value not equal")
 	}
-	time.Sleep(2 * time.Second)
+	time.Sleep(2 * time.Nanosecond * NANO_FRACTION)
 	val, expiry, err := cache.GetIntWithExpiration(1)
 	if err != nil {
 		t.Error("err should be nil")
@@ -340,7 +340,7 @@ func TestInt64Key(t *testing.T) {
 		t.Error("value not equal")
 	}
 	now := time.Now()
-	if expiry != uint32(now.Unix()+1) {
+	if expiry != uint32(now.UnixNano()/NANO_FRACTION+1) {
 		t.Errorf("Expiry should one second in the future but was %v", now)
 	}
 
